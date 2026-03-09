@@ -81,7 +81,7 @@ class FaceDetector:
     def __init__(
         self,
         model_name: str = "buffalo_l",
-        det_size: Tuple[int, int] = (640, 640),
+        det_size: Tuple[int, int] = (320, 320),
         det_thresh: float = 0.5,
         use_gpu: bool = True
     ):

@@ -2,18 +2,18 @@
 # Face Recognition + Book Detection + Transaction Management
 
 # Core Dependencies
-fastapi==0.109.0
-uvicorn[standard]==0.27.0
-pydantic==2.5.3
-pydantic-settings==2.1.0
-python-multipart==0.0.6
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.9.2
+pydantic-settings>=2.5.2
+python-multipart>=0.0.9
 email-validator>=2.0.0
 
 # Database
-sqlalchemy==2.0.25
-alembic==1.13.1
-asyncpg==0.29.0
-greenlet==3.0.3
+sqlalchemy>=2.0.25
+alembic>=1.13.1
+asyncpg>=0.30.0
+greenlet>=3.1.1
 pgvector>=0.2.0
 
 # AI/ML - Deep Learning
@@ -25,8 +25,9 @@ Pillow>=10.0.0
 
 # Face Recognition (Deep Neural Networks)
 insightface==0.7.3
-# onnxruntime-gpu>=1.16.0
-onnxruntime>=1.16.0  # Use this for CPU-only
+onnxruntime-gpu>=1.16.0
+# onnxruntime>=1.16.0  # Use this for CPU-only
+faiss-cpu>=1.7.4
 
 # Object Detection (YOLOv8)
 ultralytics>=8.0.0

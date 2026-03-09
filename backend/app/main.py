@@ -12,6 +12,23 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import sys
+import os
+
+# Fix for pyzbar on Windows with Python 3.8+
+if os.name == 'nt' and sys.version_info >= (3, 8):
+    from pathlib import Path
+    import ctypes
+    try:
+        for p in sys.path:
+            pyzbar_path = Path(p) / "pyzbar"
+            if pyzbar_path.exists() and pyzbar_path.is_dir():
+                os.add_dll_directory(str(pyzbar_path))
+                # Explicitly preload DLLs to prevent conflicts with subsequent heavy imports like CV2/Torch
+                ctypes.CDLL(str(pyzbar_path / "libiconv.dll"))
+                ctypes.CDLL(str(pyzbar_path / "libzbar-64.dll"))
+                break
+    except Exception:
+        pass
 
 from app.config import settings
 from app.database import init_db, close_db

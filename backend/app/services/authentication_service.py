@@ -160,7 +160,7 @@ class AuthenticationService:
         try:
             # Step 1: Detect face FIRST (needed for quality check)
             t_det0 = time.time()
-            faces = self.face_detector.detect(image, max_faces=5)
+            faces = self.face_detector.detect(image, max_faces=5, extract_embedding=False)
             t_det1 = time.time()
             logger.info(f"[Perf] FaceDetector.detect took {(t_det1-t_det0)*1000:.2f}ms")
             
@@ -607,7 +607,7 @@ class AuthenticationService:
                 )
                 
             # Detect face
-            faces = self.face_detector.detect(face_image, max_faces=1)
+            faces = self.face_detector.detect(face_image, max_faces=1, extract_embedding=False)
             
             if not faces:
                 error_msg = "Không phát hiện khuôn mặt."

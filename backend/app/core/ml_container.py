@@ -29,7 +29,8 @@ async def init_ai_models():
     
     # 1. Face Detector (InsightFace/ArcFace/RetinaFace)
     AIModels.face_detector = FaceDetector(
-        model_name="buffalo_l",
+        model_name="buffalo_s",
+        det_size=(320, 320),
         use_gpu=True
     )
     AIModels.face_detector.initialize()

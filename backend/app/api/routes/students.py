@@ -94,7 +94,7 @@ async def get_student_borrowing_info(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/", response_model=StudentResponse, status_code=201)
+@router.post("", response_model=StudentResponse, status_code=201)
 async def create_student(
     student: StudentCreate,
     db: AsyncSession = Depends(get_db)
@@ -175,7 +175,7 @@ async def create_student(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/", response_model=List[StudentResponse])
+@router.get("", response_model=List[StudentResponse])
 async def list_students(
     db: AsyncSession = Depends(get_db)
 ):
