@@ -117,7 +117,18 @@ class FaceDetector:
             return True
             
         try:
-            providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if self.use_gpu else ['CPUExecutionProvider']
+            from pathlib import Path
+            providers = [
+                ('TensorrtExecutionProvider', {
+                    'device_id': 0,
+                    'trt_engine_cache_enable': True,
+                    'trt_engine_cache_path': str(Path.home() / '.insightface' / 'models' / self.model_name),
+                    'trt_fp16_enable': True,
+                    'trt_max_workspace_size': 2147483648,
+                }),
+                'CUDAExecutionProvider',
+                'CPUExecutionProvider'
+            ] if self.use_gpu else ['CPUExecutionProvider']
             
             self._model = FaceAnalysis(
                 name=self.model_name,

@@ -136,12 +136,12 @@ export default function FaceCapture({ onCapture, requiredCaptures = 3 }) {
 
         const video = videoRef.current
         const canvas = canvasRef.current
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
+        
+        // Scale down to 640x360 for faster processing
+        canvas.width = 640
+        canvas.height = 360
         const ctx = canvas.getContext('2d')
-        ctx.translate(canvas.width, 0)
-        ctx.scale(-1, 1)
-        ctx.drawImage(video, 0, 0)
+        ctx.drawImage(video, 0, 0, 640, 360)
 
         isCheckingRef.current = true
 
@@ -161,7 +161,7 @@ export default function FaceCapture({ onCapture, requiredCaptures = 3 }) {
                     // Vẽ bbox nếu API trả về faces
                     if (result.faces && result.faces.length > 0) {
                         setDetectedFaces(result.faces)
-                        drawFaceBoxes(result.faces, video.videoWidth, video.videoHeight)
+                        drawFaceBoxes(result.faces, canvas.width, canvas.height)
                     } else {
                         setDetectedFaces([])
                         const overlay = overlayRef.current
@@ -225,11 +225,11 @@ export default function FaceCapture({ onCapture, requiredCaptures = 3 }) {
         const video = videoRef.current
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        ctx.translate(canvas.width, 0)
-        ctx.scale(-1, 1)
-        ctx.drawImage(video, 0, 0)
+        
+        // Scale down to 640x360 for faster processing and smaller payloads
+        canvas.width = 640
+        canvas.height = 360
+        ctx.drawImage(video, 0, 0, 640, 360)
 
         canvas.toBlob((blob) => {
             const imageUrl = URL.createObjectURL(blob)

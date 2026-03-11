@@ -72,9 +72,15 @@ export default function VerificationScreen() {
 
         const video = videoRef.current
         const canvas = canvasRef.current
-        canvas.width = video.videoWidth
-        canvas.height = video.videoHeight
-        canvas.getContext('2d').drawImage(video, 0, 0)
+        
+        // Crop the center square for efficiency
+        const size = Math.min(video.videoWidth, video.videoHeight)
+        const sx = (video.videoWidth - size) / 2
+        const sy = (video.videoHeight - size) / 2
+        
+        canvas.width = 400
+        canvas.height = 400
+        canvas.getContext('2d').drawImage(video, sx, sy, size, size, 0, 0, 400, 400)
 
         // Only checking visually in background but don't block UI strictly unless necessary
         // setFaceStatus('checking')
@@ -166,10 +172,14 @@ export default function VerificationScreen() {
         const video = videoRef.current
         const canvas = canvasRef.current
 
-        // Scale down to 640x360 to drastically speed up toBlob encoding and network upload 
-        // 15 frames of 1280x720 at 0.95 quality is heavy!
-        canvas.width = 640
-        canvas.height = 360
+        // Crop the central square to drastically speed up encoding and network upload 
+        const size = Math.min(video.videoWidth, video.videoHeight)
+        const sx = (video.videoWidth - size) / 2
+        const sy = (video.videoHeight - size) / 2
+
+        // Scale down to 400x400 for rapid 20-40ms backend processing
+        canvas.width = 400
+        canvas.height = 400
 
         setStatusMessage('Đang lấy mẫu sinh trắc học...')
 
@@ -177,7 +187,7 @@ export default function VerificationScreen() {
         const requiredFrames = 15 // 15 frames ~ 0.5s for rPPG + screen flicker
 
         const captureInterval = setInterval(() => {
-            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height)
+            canvas.getContext('2d').drawImage(video, sx, sy, size, size, 0, 0, 400, 400)
             canvas.toBlob((blob) => {
                 if (blob) {
                     frames.push(blob)

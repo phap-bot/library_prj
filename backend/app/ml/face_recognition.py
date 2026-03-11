@@ -140,9 +140,19 @@ class FaceRecognizer:
             
             elif self.model_path and Path(self.model_path).exists() and ONNX_AVAILABLE:
                 # Load custom standalone ONNX model
-                providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if self.use_gpu else ['CPUExecutionProvider']
+                providers = [
+                    ('TensorrtExecutionProvider', {
+                        'device_id': 0,
+                        'trt_engine_cache_enable': True,
+                        'trt_engine_cache_path': str(Path(self.model_path).parent),
+                        'trt_fp16_enable': True,
+                        'trt_max_workspace_size': 2147483648,
+                    }),
+                    'CUDAExecutionProvider',
+                    'CPUExecutionProvider'
+                ] if self.use_gpu else ['CPUExecutionProvider']
                 self._session = ort.InferenceSession(self.model_path, providers=providers)
-                logger.info(f"Loaded standalone ArcFace model from: {self.model_path}")
+                logger.info(f"Loaded standalone ArcFace model from: {self.model_path} with providers {providers[0] if self.use_gpu else 'CPU'}")
                 
             else:
                 logger.warning("No face recognition model available. Using mock mode.")
@@ -186,17 +196,19 @@ class FaceRecognizer:
             if aligned_face.shape[:2] != (112, 112):
                 aligned_face = cv2.resize(aligned_face, (112, 112))
             
-            # Only use CLAHE for standalone ONNX models. 
-            # InsightFace models have built-in optimal preprocessing.
-            if self._rec_model is not None:
-                embedding = self._run_insightface_inference(aligned_face)
-            elif self._session is not None:
-                aligned_face = self._apply_clahe(aligned_face)
+            import time
+            t0 = time.time()
+            if self._session is not None:
+                logger.info(f"[DEBUG] Extracting embedding using standalone ONNX session")
+                # Do not apply CLAHE, as InsightFace models expect raw images normalized properly
                 embedding = self._run_onnx_inference(aligned_face)
             else:
+                logger.info(f"[DEBUG] Extracting embedding using mock model")
                 aligned_face = self._apply_clahe(aligned_face)
                 embedding = self._mock_embedding(aligned_face)
                 
+            t1 = time.time()
+            logger.info(f"[DEBUG] Internal feature extraction took {(t1-t0)*1000:.2f}ms")
             # L2 normalize properly
             norm = np.linalg.norm(embedding)
             if abs(norm - 1.0) > 0.01:
@@ -217,26 +229,16 @@ class FaceRecognizer:
             )
     
     def _run_onnx_inference(self, face: np.ndarray) -> np.ndarray:
-        """Run inference using ONNX Runtime."""
-        # Preprocess: HWC -> CHW, normalize
-        face = face.astype(np.float32)
-        face = (face - 127.5) / 127.5  # Normalize to [-1, 1]
-        face = face.transpose(2, 0, 1)  # HWC -> CHW
-        face = np.expand_dims(face, axis=0)  # Add batch dimension
-        
+        """Run inference using ONNX Runtime with InsightFace-equivalent preprocessing."""
+        # InsightFace uses scale=1.0/127.5, mean=(127.5, 127.5, 127.5), swapRB=True
+        # and spatial size usually 112x112
+        blob = cv2.dnn.blobFromImages(
+            [face], 1.0 / 127.5, (112, 112),
+            (127.5, 127.5, 127.5), swapRB=True
+        )
         input_name = self._session.get_inputs()[0].name
-        output = self._session.run(None, {input_name: face})
-        
+        output = self._session.run(None, {input_name: blob})
         return output[0].flatten()
-    
-    def _run_insightface_inference(self, face: np.ndarray) -> np.ndarray:
-        """Run straight to recognition model sub-node. Skips detection phase."""
-        if self._rec_model is not None:
-            # InsightFace recognizers typically expect RGB and native 112x112 layout
-            embedding = self._rec_model.get_feat(face)
-            return embedding.flatten()
-            
-        return self._mock_embedding(face)
     
     def _mock_embedding(self, face: np.ndarray) -> np.ndarray:
         """
