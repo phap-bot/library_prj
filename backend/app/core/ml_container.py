@@ -25,13 +25,13 @@ class AIModels:
 
 async def init_ai_models():
     """Initialize all AI models and warm them up on the GPU."""
-    logger.info("Initializing AI models on GPU...")
+    logger.info(f"Initializing AI models (GPU: {settings.use_gpu})...")
     
     # 1. Face Detector (InsightFace/ArcFace/RetinaFace)
     AIModels.face_detector = FaceDetector(
         model_name="buffalo_s",
         det_size=(320, 320),
-        use_gpu=True
+        use_gpu=settings.use_gpu
     )
     AIModels.face_detector.initialize()
     
@@ -39,7 +39,7 @@ async def init_ai_models():
     AIModels.anti_spoofing = AntiSpoofing(
         model_path=settings.antispoofing_model_path,
         threshold=settings.liveness_threshold,
-        use_gpu=True
+        use_gpu=settings.use_gpu
     )
     AIModels.anti_spoofing.initialize()
 
@@ -47,14 +47,14 @@ async def init_ai_models():
     # Hitch to existing FaceAnalysis instance from face_detector to save VRAM (B05)
     AIModels.face_recognizer = FaceRecognizer(
         face_analysis_instance=getattr(AIModels.face_detector, '_model', None),
-        use_gpu=True
+        use_gpu=settings.use_gpu
     )
     AIModels.face_recognizer.initialize()
     
     # 5. Book Detector (YOLOv8)
     AIModels.book_detector = BookDetector(
         model_path=settings.yolo_model_path,
-        use_gpu=True
+        use_gpu=settings.use_gpu
     )
     AIModels.book_detector.initialize()
     

@@ -57,3 +57,8 @@ httpx>=0.26.0
 
 # Logging
 loguru>=0.7.0
+
+# Langchain
+langchain>=1.2.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0

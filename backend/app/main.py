@@ -32,7 +32,7 @@ if os.name == 'nt' and sys.version_info >= (3, 8):
 
 from app.config import settings
 from app.database import init_db, close_db
-from app.api.routes import auth, books, transactions, students, assistant
+from app.api.routes import auth, books, transactions, students, assistant, chatbot
 from app.core.ml_container import init_ai_models, AIModels
 
 
@@ -150,6 +150,7 @@ app.include_router(books.router, prefix=API_PREFIX)
 app.include_router(transactions.router, prefix=API_PREFIX)
 app.include_router(students.router, prefix=API_PREFIX)
 app.include_router(assistant.router, prefix=API_PREFIX)
+app.include_router(chatbot.router, prefix="/api/chatbot")
 
 
 @app.get("/", tags=["Root"])
